@@ -1,0 +1,23 @@
+# Node / Frontend / Backend NestJS
+node_modules/
+dist/
+build/
+.env
+.env.local
+.env.*.local
+
+# Python / FastAPI
+.venv/
+.venv_nuevo/
+__pycache__/
+*.pyc
+
+# Editor / SO
+.vscode/*
+!.vscode/extensions.json
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*

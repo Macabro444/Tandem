@@ -1,0 +1,179 @@
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum RolUsuario {
+  ADMIN
+  COORDINADOR
+  EMPLEADO
+}
+
+model Empresa {
+  id_empresa         Int       @id @default(autoincrement())
+  nom_empresa        String    @db.VarChar(150)
+  rfc_empresa        String    @unique @db.VarChar(13)
+  calle_empresa      String?   @db.VarChar(100)
+  ext_empresa        String?   @db.VarChar(10)
+  int_empresa        String?   @db.VarChar(10)
+  col_empresa        String?   @db.VarChar(100)
+  cp_empresa         String?   @db.VarChar(5)
+  mpio_empresa       String?   @db.VarChar(100)
+  estado_empresa     String?   @db.VarChar(100)
+  nom_resp_empresa   String?   @db.VarChar(100)
+  ap_resp_empresa    String?   @db.VarChar(100)
+  tel_resp_empresa   String?   @db.VarChar(15)
+  email_resp_empresa String?   @db.VarChar(100)
+  giro_empresa       String?   @db.VarChar(100)
+  num_empl_empresa   String?   @db.VarChar(50)
+  cod_empresa        String    @unique @db.VarChar(12)
+  cues_empresa       Int       @default(0)
+  inicio_empresa     DateTime?
+  fin_empresa        DateTime?
+  activo             Boolean   @default(true)
+  created_at         DateTime  @default(now())
+
+  usuarios             Usuario[]
+  contratoes           Contrato[]
+  evaluacionResultados EvaluacionResultado[]
+
+  @@map("empresas")
+}
+
+model Usuario {
+  id_usuario     Int        @id @default(autoincrement())
+  nom_usuario    String     @db.VarChar(100)
+  ap_usuario     String     @db.VarChar(100)
+  tel_usuario    String?    @db.VarChar(15)
+  email_usuario  String     @unique @db.VarChar(100)
+  username       String     @unique @db.VarChar(50)
+  cont_usuario   String     @db.VarChar(255)
+  rol_usuario    RolUsuario
+  id_empresa     Int?
+  primer_ingreso Boolean    @default(true)
+  activo         Boolean    @default(true)
+  created_at     DateTime   @default(now())
+
+  empresa              Empresa?              @relation(fields: [id_empresa], references: [id_empresa])
+  evaluacionResultados EvaluacionResultado[]
+
+  @@map("usuarios")
+}
+
+model Contrato {
+  id_contrato          Int      @id @default(autoincrement())
+  id_empresa           Int
+  nombre_contrato      String   @db.VarChar(100)
+  fecha_inicio         DateTime
+  fecha_fin            DateTime
+  total_licencias      Int
+  licencias_usadas     Int      @default(0)
+  total_cuestionarios  Int
+  cuestionarios_usados Int      @default(0)
+  activo               Boolean  @default(true)
+  created_at           DateTime @default(now())
+
+  empresa Empresa @relation(fields: [id_empresa], references: [id_empresa])
+
+  @@map("contratos")
+}
+
+model EvaluacionResultado {
+  id_resultado       Int      @id @default(autoincrement())
+  id_empresa         Int
+  tipo_estudio       String   @db.VarChar(50)
+  fecha_aplicacion   DateTime @default(now())
+  origen_captura     String?  @db.VarChar(20)
+  anonimo            Boolean  @default(true)
+  id_usuario         Int?
+  adscripcion        String?  @db.VarChar(100)
+  area_trabaja       String?  @db.VarChar(100)
+  puesto_ocupa       String?  @db.VarChar(100)
+  puesto_reporta     String?  @db.VarChar(100)
+  antiguedad         String?  @db.VarChar(50)
+  tipo_contrato      String?  @db.VarChar(50)
+  escolaridad        String?  @db.VarChar(50)
+  tiene_discapacidad String?  @db.VarChar(5)
+  tipo_discapacidad  String?  @db.VarChar(100)
+  sector_poblacion   String?  @db.VarChar(100)
+  puntaje_total      Int?
+  nivel_riesgo       String?  @db.VarChar(30)
+  created_at         DateTime @default(now())
+
+  empresa    Empresa            @relation(fields: [id_empresa], references: [id_empresa])
+  usuario    Usuario?           @relation(fields: [id_usuario], references: [id_usuario])
+  respuestas RespuestaDetalle[]
+
+  @@map("evaluaciones_resultados")
+}
+
+model EscalaCalificacion {
+  id_escala     Int      @id @default(autoincrement())
+  nombre_escala String   @db.VarChar(100)
+  descripcion   String?  @db.VarChar(255)
+  created_at    DateTime @default(now())
+
+  opciones  OpcionEscala[]
+  reactivos Reactivo[]
+
+  @@map("escalas_calificacion")
+}
+
+model OpcionEscala {
+  id_opcion      Int      @id @default(autoincrement())
+  id_escala      Int
+  texto_opcion   String   @db.VarChar(100)
+  valor_numerico Int
+  created_at     DateTime @default(now())
+
+  escala EscalaCalificacion @relation(fields: [id_escala], references: [id_escala])
+
+  @@map("opciones_escala")
+}
+
+model Dimension {
+  id_dimension      Int      @id @default(autoincrement())
+  nombre_dimension  String   @db.VarChar(150)
+  concepto_descrip  String?
+  tipo_cuestionario String?  @db.VarChar(50)
+  created_at        DateTime @default(now())
+
+  reactivos Reactivo[]
+
+  @@map("dimensiones")
+}
+
+model Reactivo {
+  id_reactivo    Int      @id @default(autoincrement())
+  id_dimension   Int
+  id_escala      Int
+  texto_reactivo String
+  numero_oficial Int?
+  seccion        String?  @db.VarChar(10)
+  created_at     DateTime @default(now())
+
+  dimension  Dimension          @relation(fields: [id_dimension], references: [id_dimension])
+  escala     EscalaCalificacion @relation(fields: [id_escala], references: [id_escala])
+  respuestas RespuestaDetalle[]
+
+  @@map("reactivos")
+}
+
+model RespuestaDetalle {
+  id_respuesta_detalle Int      @id @default(autoincrement())
+  id_resultado         Int
+  id_reactivo          Int
+  valor_respondido     Int
+  texto_abierto        String?
+  created_at           DateTime @default(now())
+
+  resultado EvaluacionResultado @relation(fields: [id_resultado], references: [id_resultado])
+  reactivo  Reactivo            @relation(fields: [id_reactivo], references: [id_reactivo])
+
+  @@map("respuestas_detalle")
+}
