@@ -87,7 +87,8 @@ import { useAuthStore } from '@/stores/auth.store';
 
 const router = useRouter();
 const authStore = useAuthStore();
-const API_URL = import.meta.env.VITE_FASTAPI_URL || 'http://localhost:8000';
+const API_URL = import.meta.env.VITE_FASTAPI_URL
+  || (import.meta.env.PROD ? window.location.origin : 'http://localhost:8000');
 
 const empresaNombre = ref('');
 const evaluaciones = ref({

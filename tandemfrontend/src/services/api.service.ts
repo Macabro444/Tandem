@@ -1,8 +1,10 @@
 import axios from 'axios';
 import type { AxiosInstance, AxiosRequestConfig } from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-const FASTAPI_URL = import.meta.env.VITE_FASTAPI_URL || 'http://localhost:8000';
+const API_URL = import.meta.env.VITE_API_URL
+  || (import.meta.env.PROD ? window.location.origin : 'http://localhost:3000');
+const FASTAPI_URL = import.meta.env.VITE_FASTAPI_URL
+  || (import.meta.env.PROD ? window.location.origin : 'http://localhost:8000');
 
 class ApiService {
   private api: AxiosInstance;

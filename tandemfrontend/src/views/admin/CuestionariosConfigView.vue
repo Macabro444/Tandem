@@ -464,7 +464,8 @@ const removeToast = (index: number) => {
 // =============================================
 // CONSTANTES
 // =============================================
-const API_URL = import.meta.env.VITE_FASTAPI_URL || 'http://localhost:8000';
+const API_URL = import.meta.env.VITE_FASTAPI_URL
+  || (import.meta.env.PROD ? window.location.origin : 'http://localhost:8000');
 
 // =============================================
 // ESTADO

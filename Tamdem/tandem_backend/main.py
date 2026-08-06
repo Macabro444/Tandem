@@ -1,11 +1,9 @@
 import os
 import random
-from fastapi import FastAPI, Query, HTTPException, UploadFile, File
+from fastapi import FastAPI, Query, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional
-import pandas as pd
-import io
 from supabase import create_client, Client
 from datetime import datetime
 from reportes import router as reportes_router
