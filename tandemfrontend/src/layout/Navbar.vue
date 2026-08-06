@@ -25,7 +25,7 @@
             <router-link to="/users" class="nav-link">
               <IconUser class="nav-icon" /> Usuarios
             </router-link>
-            <router-link to="/gestion-cuestionarios" class="nav-link">
+            <router-link to="/asignar-cuestionarios" class="nav-link">
               <IconClipboard class="nav-icon" /> Cuestionarios
             </router-link>
             <router-link to="/cuestionarios-config" class="nav-link">
@@ -51,9 +51,6 @@
           <template v-if="authStore.isEmployee">
             <router-link to="/empleado/dashboard" class="nav-link">
               <IconGrid class="nav-icon" /> Mi panel
-            </router-link>
-            <router-link to="/cuestionario-pwa" class="nav-link">
-              <IconClipboard class="nav-icon" /> Cuestionario
             </router-link>
           </template>
 
@@ -121,7 +118,7 @@
             <router-link to="/users" class="nav-link" @click="closeMenu">
               <IconUser class="nav-icon" /> Usuarios
             </router-link>
-            <router-link to="/gestion-cuestionarios" class="nav-link" @click="closeMenu">
+            <router-link to="/asignar-cuestionarios" class="nav-link" @click="closeMenu">
               <IconClipboard class="nav-icon" /> Cuestionarios
             </router-link>
             <router-link to="/cuestionarios-config" class="nav-link" @click="closeMenu">
