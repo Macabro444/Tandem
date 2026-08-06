@@ -5,6 +5,11 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  const configuredOrigins = (process.env.CORS_ORIGINS ?? '')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
   // ✅ CORS
   app.enableCors({
     origin: [
@@ -13,6 +18,7 @@ async function bootstrap() {
       'http://localhost:4173',
       'http://localhost:4174',
       'http://localhost:3000',
+      ...configuredOrigins,
       /^http:\/\/192\.168\.\d+\.\d+:\d+$/, // acceso desde celular/red local
       /^http:\/\/100\.\d+\.\d+\.\d+:\d+$/, // acceso vía Tailscale
       /^https:\/\/.*\.ts\.net$/, // acceso vía Tailscale HTTPS (tailscale serve)

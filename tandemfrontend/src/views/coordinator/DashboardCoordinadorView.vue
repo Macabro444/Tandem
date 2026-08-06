@@ -119,7 +119,7 @@ import { useAuthStore } from '@/stores/auth.store';
 import axios from 'axios';
 
 const authStore = useAuthStore();
-const PYTHON_API = 'http://localhost:8000';
+const PYTHON_API = import.meta.env.VITE_FASTAPI_URL || 'http://localhost:8000';
 
 const empresa = ref<any>(null);
 const licencias = ref({ total: 0, disponibles: 0 });

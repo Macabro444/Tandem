@@ -1,5 +1,5 @@
-from fastapi import FastAPI, Query, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
+import os
+from fastapi import APIRouter, Query, HTTPException
 from typing import Dict, List, Any, Optional
 from supabase import create_client, Client
 import math
@@ -8,26 +8,15 @@ from datetime import datetime
 # ============================================================================
 # CONFIGURACIÓN DE SUPABASE
 # ============================================================================
-SUPABASE_URL = "https://dpgjpowkghyiovkfvwen.supabase.co"
-SUPABASE_KEY = "sb_publishable_T38KwHDUUxB7Vj80Ej6Q9w_08ywcU1J"
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+
+if not SUPABASE_URL or not SUPABASE_KEY:
+    raise RuntimeError("SUPABASE_URL y SUPABASE_KEY deben estar configuradas")
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-app = FastAPI(
-    title="Tándem API - Módulo de Reportes",
-    description="Motor analítico y matemático para cuestionarios"
-)
-
-# ============================================================================
-# CORS
-# ============================================================================
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+router = APIRouter()
 
 # ============================================================================
 # FUNCIONES DE AYUDA
@@ -55,7 +44,7 @@ def supabase_to_dict(result):
 # ============================================================================
 # ENDPOINT 1: OBTENER CUESTIONARIOS PARA REPORTES
 # ============================================================================
-@app.get("/api/reportes/cuestionarios")
+@router.get("/api/reportes/cuestionarios")
 def obtener_cuestionarios_reportes(
     id_empresa: Optional[int] = Query(None, description="ID de la empresa (opcional)")
 ):
@@ -86,7 +75,7 @@ def obtener_cuestionarios_reportes(
 # ============================================================================
 # ENDPOINT 2: DASHBOARD POR CUESTIONARIO
 # ============================================================================
-@app.get("/api/reportes/dashboard-cuestionario")
+@router.get("/api/reportes/dashboard-cuestionario")
 def obtener_dashboard_cuestionario(
     id_cuestionario: int = Query(..., description="ID del cuestionario")
 ):
@@ -261,7 +250,7 @@ def obtener_dashboard_cuestionario(
 # ============================================================================
 # ENDPOINT 3: EXPORTAR REPORTE A CSV
 # ============================================================================
-@app.get("/api/reportes/exportar-cuestionario")
+@router.get("/api/reportes/exportar-cuestionario")
 def exportar_reporte_cuestionario(
     id_cuestionario: int = Query(..., description="ID del cuestionario")
 ):
@@ -326,22 +315,6 @@ def exportar_reporte_cuestionario(
 # ENDPOINT: VERIFICAR CONEXIÓN
 # ============================================================================
 
-@app.get("/api/health")
+@router.get("/api/reportes/health")
 def health_check():
     return {"status": "OK", "message": "Reportes API está funcionando correctamente"}
-
-@app.get("/")
-def root():
-    return {
-        "message": "Tándem API - Reportes",
-        "version": "1.0.0",
-        "endpoints": {
-            "/api/reportes/cuestionarios": "GET - Lista cuestionarios",
-            "/api/reportes/dashboard-cuestionario": "GET - Dashboard",
-            "/api/reportes/exportar-cuestionario": "GET - Exportar CSV"
-        }
-    }
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8001)

@@ -1,3 +1,4 @@
+import os
 import random
 from fastapi import FastAPI, Query, HTTPException, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
@@ -7,12 +8,16 @@ import pandas as pd
 import io
 from supabase import create_client, Client
 from datetime import datetime
+from reportes import router as reportes_router
 
 # ============================================================================
 # CONFIGURACIÓN DE SUPABASE
 # ============================================================================
-SUPABASE_URL = "https://dpgjpowkghyiovkfvwen.supabase.co"
-SUPABASE_KEY = "sb_publishable_T38KwHDUUxB7Vj80Ej6Q9w_08ywcU1J"
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+
+if not SUPABASE_URL or not SUPABASE_KEY:
+    raise RuntimeError("SUPABASE_URL y SUPABASE_KEY deben estar configuradas")
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
@@ -23,11 +28,19 @@ app = FastAPI(title="Tándem API - Gestión de Cuestionarios")
 # ============================================================================
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        origin.strip()
+        for origin in os.getenv(
+            "CORS_ORIGINS", "http://localhost:5173,http://localhost:4173"
+        ).split(",")
+        if origin.strip()
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(reportes_router)
 
 # ============================================================================
 # MODELOS Pydantic
@@ -662,4 +675,4 @@ def root():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", "8000")))

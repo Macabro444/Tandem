@@ -223,7 +223,7 @@ class ApiService {
  * para el dashboard del coordinador
  */
 async getEvaluacionesEmpresa(idEmpresa: number): Promise<any> {
-  const response = await axios.get(`http://localhost:8000/api/coordinador/evaluaciones/${idEmpresa}`);
+  const response = await axios.get(`${FASTAPI_URL}/api/coordinador/evaluaciones/${idEmpresa}`);
   return response.data;
 }
 
@@ -235,7 +235,7 @@ async getEvaluacionesEmpresa(idEmpresa: number): Promise<any> {
    * Obtiene todos los reactivos (desde FastAPI)
    */
   async getReactivosFastAPI(): Promise<any[]> {
-    const response = await axios.get('http://localhost:8000/api/reactivos');
+    const response = await axios.get(`${FASTAPI_URL}/api/reactivos`);
     return response.data;
   }
 
@@ -243,7 +243,7 @@ async getEvaluacionesEmpresa(idEmpresa: number): Promise<any> {
    * Obtiene las dimensiones (desde FastAPI)
    */
   async getDimensionesFastAPI(): Promise<any[]> {
-    const response = await axios.get('http://localhost:8000/api/dimensiones');
+    const response = await axios.get(`${FASTAPI_URL}/api/dimensiones`);
     return response.data;
   }
 
@@ -251,7 +251,7 @@ async getEvaluacionesEmpresa(idEmpresa: number): Promise<any> {
    * Crea un reactivo en FastAPI
    */
   async createReactivoFastAPI(data: any): Promise<any> {
-    const response = await axios.post('http://localhost:8000/api/reactivos', data);
+    const response = await axios.post(`${FASTAPI_URL}/api/reactivos`, data);
     return response.data;
   }
 
@@ -259,7 +259,7 @@ async getEvaluacionesEmpresa(idEmpresa: number): Promise<any> {
    * Actualiza un reactivo en FastAPI
    */
   async updateReactivoFastAPI(id: number, data: any): Promise<any> {
-    const response = await axios.put(`http://localhost:8000/api/reactivos/${id}`, data);
+    const response = await axios.put(`${FASTAPI_URL}/api/reactivos/${id}`, data);
     return response.data;
   }
 
@@ -267,7 +267,7 @@ async getEvaluacionesEmpresa(idEmpresa: number): Promise<any> {
    * Elimina un reactivo en FastAPI
    */
   async deleteReactivoFastAPI(id: number): Promise<any> {
-    const response = await axios.delete(`http://localhost:8000/api/reactivos/${id}`);
+    const response = await axios.delete(`${FASTAPI_URL}/api/reactivos/${id}`);
     return response.data;
   }
 
@@ -278,7 +278,7 @@ async getEvaluacionesEmpresa(idEmpresa: number): Promise<any> {
     const formData = new FormData();
     formData.append('file', file);
     
-    const response = await axios.post('http://localhost:8000/api/configurar/reactivos-excel', formData, {
+    const response = await axios.post(`${FASTAPI_URL}/api/configurar/reactivos-excel`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -291,22 +291,22 @@ async getEvaluacionesEmpresa(idEmpresa: number): Promise<any> {
   // =============================================
 
   async getEscalasFastAPI(): Promise<any[]> {
-    const response = await axios.get('http://localhost:8000/api/escalas');
+    const response = await axios.get(`${FASTAPI_URL}/api/escalas`);
     return response.data;
   }
 
   async createEscalaFastAPI(data: any): Promise<any> {
-    const response = await axios.post('http://localhost:8000/api/escalas', data);
+    const response = await axios.post(`${FASTAPI_URL}/api/escalas`, data);
     return response.data;
   }
 
   async updateEscalaFastAPI(id: number, data: any): Promise<any> {
-    const response = await axios.put(`http://localhost:8000/api/escalas/${id}`, data);
+    const response = await axios.put(`${FASTAPI_URL}/api/escalas/${id}`, data);
     return response.data;
   }
 
   async deleteEscalaFastAPI(id: number): Promise<any> {
-    const response = await axios.delete(`http://localhost:8000/api/escalas/${id}`);
+    const response = await axios.delete(`${FASTAPI_URL}/api/escalas/${id}`);
     return response.data;
   }
 
@@ -315,17 +315,17 @@ async getEvaluacionesEmpresa(idEmpresa: number): Promise<any> {
   // =============================================
 
   async createDimensionFastAPI(data: any): Promise<any> {
-    const response = await axios.post('http://localhost:8000/api/dimensiones', data);
+    const response = await axios.post(`${FASTAPI_URL}/api/dimensiones`, data);
     return response.data;
   }
 
   async updateDimensionFastAPI(id: number, data: any): Promise<any> {
-    const response = await axios.put(`http://localhost:8000/api/dimensiones/${id}`, data);
+    const response = await axios.put(`${FASTAPI_URL}/api/dimensiones/${id}`, data);
     return response.data;
   }
 
   async deleteDimensionFastAPI(id: number): Promise<any> {
-    const response = await axios.delete(`http://localhost:8000/api/dimensiones/${id}`);
+    const response = await axios.delete(`${FASTAPI_URL}/api/dimensiones/${id}`);
     return response.data;
   }
 }
