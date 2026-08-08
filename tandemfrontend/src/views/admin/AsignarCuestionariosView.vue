@@ -212,6 +212,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
+import ApiService from '@/services/api.service';
 
 // =============================================
 // TOAST SYSTEM
@@ -336,8 +337,7 @@ const cargarCuestionarios = async () => {
 
 const cargarEmpresas = async () => {
   try {
-    const res = await axios.get(`${API_URL}/empresas`);
-    empresas.value = res.data || [];
+    empresas.value = await ApiService.getEmpresas() || [];
     if (empresas.value.length > 0) {
       formData.value.id_empresa = empresas.value[0].id_empresa;
     }
