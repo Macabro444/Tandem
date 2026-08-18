@@ -84,6 +84,7 @@ import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 import { useAuthStore } from '@/stores/auth.store';
+import ApiService from '@/services/api.service';
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -119,8 +120,8 @@ const cargarDatos = async () => {
     // Obtener nombre de la empresa
     if (authStore.user?.id_empresa) {
       try {
-        const empresaRes = await axios.get(`${API_URL}/empresas/${authStore.user.id_empresa}`);
-        empresaNombre.value = empresaRes.data?.nom_empresa || 'Sin empresa';
+        const empresa = await ApiService.getEmpresa(authStore.user.id_empresa);
+        empresaNombre.value = empresa?.nom_empresa || 'Sin empresa';
       } catch (e) {
         console.warn('Error cargando empresa:', e);
       }

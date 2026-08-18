@@ -89,9 +89,9 @@
       <!-- Resumen general -->
       <div class="stats-grid">
         <div class="stat-card">
-          <span class="stat-label">Promedio General</span>
+          <span class="stat-label">Puntaje promedio</span>
           <span class="stat-value">{{ dashboardData.promedio_general || 0 }}</span>
-          <span class="stat-sub">/ 4.0</span>
+          <span class="stat-sub">puntos</span>
         </div>
         <div class="stat-card" :style="{ borderLeftColor: dashboardData.semaforo_global?.color || '#ccc' }">
           <span class="stat-label">Nivel de Riesgo</span>

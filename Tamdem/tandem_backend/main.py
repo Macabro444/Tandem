@@ -87,6 +87,17 @@ def obtener_nombre_dimension(id_dimension: int) -> str:
         pass
     return "Sin dimensión"
 
+def calcular_nivel_riesgo(puntaje: int) -> str:
+    if puntaje < 20:
+        return "Nulo"
+    if puntaje < 45:
+        return "Bajo"
+    if puntaje < 70:
+        return "Medio"
+    if puntaje < 90:
+        return "Alto"
+    return "Muy Alto"
+
 # ============================================================================
 # ENDPOINTS PARA EMPRESAS
 # ============================================================================
@@ -523,9 +534,44 @@ def obtener_cuestionario_empleado(id_cuestionario: int, id_usuario: int):
 @app.post("/api/responder-cuestionario")
 def responder_cuestionario(data: ResponderCuestionario):
     try:
+        if not data.respuestas:
+            raise HTTPException(status_code=400, detail="El cuestionario no contiene respuestas")
+
         cuestionario = supabase.table("cuestionarios").select("id_empresa, tipo_estudio").eq("id_cuestionario", data.id_cuestionario).execute()
         if not cuestionario.data:
             raise HTTPException(status_code=404, detail="Cuestionario no encontrado")
+
+        completado = supabase.table("evaluaciones_resultados").select("id_resultado")\
+            .eq("id_cuestionario", data.id_cuestionario)\
+            .eq("id_usuario", data.id_usuario)\
+            .eq("estado", "COMPLETADO")\
+            .execute()
+        if completado.data:
+            raise HTTPException(status_code=409, detail="El usuario ya completó este cuestionario")
+
+        respuestas_normalizadas = []
+        valores_numericos = []
+        for resp in data.respuestas:
+            id_reactivo = resp.get("id_reactivo")
+            valor = resp.get("valor_respondido")
+            if id_reactivo is None:
+                raise HTTPException(status_code=400, detail="Cada respuesta requiere id_reactivo")
+            if valor is not None:
+                try:
+                    valor = int(valor)
+                except (TypeError, ValueError):
+                    raise HTTPException(status_code=400, detail="Las respuestas deben ser numéricas")
+                if valor < 0 or valor > 4:
+                    raise HTTPException(status_code=400, detail="Las respuestas deben estar entre 0 y 4")
+                valores_numericos.append(valor)
+            respuestas_normalizadas.append({
+                "id_reactivo": int(id_reactivo),
+                "valor_respondido": valor,
+                "texto_abierto": resp.get("texto_abierto")
+            })
+
+        puntaje_total = sum(valores_numericos)
+        nivel_riesgo = calcular_nivel_riesgo(puntaje_total)
         
         cuestionario_data = cuestionario.data[0]
         
@@ -537,7 +583,9 @@ def responder_cuestionario(data: ResponderCuestionario):
             "fecha_aplicacion": datetime.now().isoformat(),
             "estado": "COMPLETADO",
             "origen_captura": "DIGITAL_PWA",
-            "anonimo": True
+            "anonimo": True,
+            "puntaje_total": puntaje_total,
+            "nivel_riesgo": nivel_riesgo
         }).execute()
         
         id_resultado = result.data[0]["id_resultado"] if result.data else None
@@ -545,19 +593,31 @@ def responder_cuestionario(data: ResponderCuestionario):
         if not id_resultado:
             raise HTTPException(status_code=500, detail="Error al guardar la evaluación")
         
-        for resp in data.respuestas:
-            supabase.table("respuestas_detalle").insert({
+        respuestas_payload = [
+            {
                 "id_resultado": id_resultado,
                 "id_reactivo": resp["id_reactivo"],
-                "valor_respondido": resp.get("valor_respondido"),
-                "texto_abierto": resp.get("texto_abierto")
-            }).execute()
+                "valor_respondido": resp["valor_respondido"],
+                "texto_abierto": resp["texto_abierto"]
+            }
+            for resp in respuestas_normalizadas
+        ]
+
+        try:
+            supabase.table("respuestas_detalle").insert(respuestas_payload).execute()
+        except Exception:
+            supabase.table("evaluaciones_resultados").delete().eq("id_resultado", id_resultado).execute()
+            raise
         
         return {
             "status": "Éxito", 
             "message": "¡Cuestionario procesado y guardado correctamente!", 
-            "id_resultado": id_resultado
+            "id_resultado": id_resultado,
+            "puntaje_total": puntaje_total,
+            "nivel_riesgo": nivel_riesgo
         }
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error al guardar las respuestas: {str(e)}")
 

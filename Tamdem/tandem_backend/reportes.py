@@ -113,6 +113,18 @@ def obtener_dashboard_cuestionario(
         # 5. Obtener dimensiones
         dimensiones_res = supabase.table("dimensiones").select("*").execute()
         dimensiones_dict = {d["id_dimension"]: d for d in dimensiones_res.data} if dimensiones_res.data else {}
+
+        ids_resultados = [e["id_resultado"] for e in evaluaciones]
+        respuestas_por_resultado = {}
+        if ids_resultados:
+            respuestas_res = supabase.table("respuestas_detalle")\
+                .select("id_resultado, valor_respondido")\
+                .in_("id_resultado", ids_resultados)\
+                .execute()
+            for respuesta in respuestas_res.data or []:
+                valor = respuesta.get("valor_respondido")
+                if valor is not None:
+                    respuestas_por_resultado.setdefault(respuesta["id_resultado"], []).append(valor)
         
         # Si no hay evaluaciones
         if not evaluaciones:
@@ -136,6 +148,10 @@ def obtener_dashboard_cuestionario(
         puntajes = []
         for e in evaluaciones:
             pt = e.get("puntaje_total")
+            if pt is None:
+                valores = respuestas_por_resultado.get(e["id_resultado"], [])
+                if valores:
+                    pt = sum(valores)
             if pt is not None:
                 puntajes.append(pt)
         
@@ -177,7 +193,6 @@ def obtener_dashboard_cuestionario(
             reactivos_dim = [r_id for r_id, r in reactivos_dict.items() if r.get("id_dimension") == id_dim]
             
             if reactivos_dim:
-                ids_resultados = [e["id_resultado"] for e in evaluaciones]
                 respuestas_res = supabase.table("respuestas_detalle").select("valor_respondido")\
                     .in_("id_reactivo", reactivos_dim)\
                     .in_("id_resultado", ids_resultados)\
@@ -199,7 +214,6 @@ def obtener_dashboard_cuestionario(
         # 9. Frecuencias por pregunta
         frecuencias_preguntas = []
         for id_reactivo, r_data in reactivos_dict.items():
-            ids_resultados = [e["id_resultado"] for e in evaluaciones]
             respuestas_res = supabase.table("respuestas_detalle").select("valor_respondido")\
                 .eq("id_reactivo", id_reactivo)\
                 .in_("id_resultado", ids_resultados)\
@@ -241,6 +255,8 @@ def obtener_dashboard_cuestionario(
             "resumen_dimensiones": resumen_dimensiones,
             "frecuencias_preguntas": frecuencias_preguntas
         }
+    except HTTPException:
+        raise
     except Exception as e:
         print(f"❌ Error: {str(e)}")
         import traceback
@@ -308,6 +324,8 @@ def exportar_reporte_cuestionario(
             "csv_data": output.getvalue(),
             "filename": f"reporte_cuestionario_{id_cuestionario}_{datetime.now().strftime('%Y%m%d')}.csv"
         }
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error al exportar: {str(e)}")
 

@@ -8,8 +8,18 @@ export class EmpresasService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(data: CreateEmpresaDto) {
+    const { inicio_empresa, fin_empresa, ...empresaData } = data;
+
     return this.prisma.empresa.create({
-      data,
+      data: {
+        ...empresaData,
+        ...(inicio_empresa !== undefined && {
+          inicio_empresa: new Date(inicio_empresa),
+        }),
+        ...(fin_empresa !== undefined && {
+          fin_empresa: new Date(fin_empresa),
+        }),
+      },
     });
   }
 
@@ -39,11 +49,21 @@ export class EmpresasService {
   async update(id: number, data: UpdateEmpresaDto) {
     await this.findOne(id);
 
+    const { inicio_empresa, fin_empresa, ...empresaData } = data;
+
     return this.prisma.empresa.update({
       where: {
         id_empresa: id,
       },
-      data,
+      data: {
+        ...empresaData,
+        ...(inicio_empresa !== undefined && {
+          inicio_empresa: new Date(inicio_empresa),
+        }),
+        ...(fin_empresa !== undefined && {
+          fin_empresa: new Date(fin_empresa),
+        }),
+      },
     });
   }
 
