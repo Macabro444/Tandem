@@ -36,6 +36,63 @@ def calcular_semaforo_nom035(puntaje: int) -> Dict[str, str]:
     else:
         return {"nivel": "Muy Alto", "color": "#D50000", "descripcion": "Riesgo muy alto, requiere atención urgente"}
 
+def obtener_retroalimentacion_y_estrategias(nivel: str) -> Dict[str, Any]:
+    recomendaciones = {
+        "Nulo": {
+            "retroalimentacion": "El resultado no muestra factores de riesgo relevantes. Las condiciones evaluadas son favorables y conviene conservar las prácticas actuales.",
+            "estrategias": [
+                "Mantener las medidas preventivas y los canales de comunicación existentes.",
+                "Dar seguimiento periódico para detectar cambios en las condiciones de trabajo.",
+                "Reconocer y reforzar las prácticas organizacionales que obtuvieron buenos resultados."
+            ]
+        },
+        "Bajo": {
+            "retroalimentacion": "Se observan factores de riesgo de baja intensidad. No representan una condición crítica, pero requieren seguimiento para evitar que aumenten.",
+            "estrategias": [
+                "Revisar las dimensiones con mayor puntaje e identificar oportunidades de mejora.",
+                "Reforzar la comunicación, la claridad de funciones y el reconocimiento al personal.",
+                "Mantener evaluaciones periódicas y registrar las acciones preventivas realizadas."
+            ]
+        },
+        "Medio": {
+            "retroalimentacion": "El resultado indica factores de riesgo que pueden afectar el bienestar y el desempeño. Es recomendable aplicar acciones preventivas específicas.",
+            "estrategias": [
+                "Elaborar un plan de acción sobre las dimensiones con resultados más altos.",
+                "Revisar cargas de trabajo, horarios, responsabilidades y claridad de funciones.",
+                "Capacitar a responsables de equipo en liderazgo, comunicación y manejo de conflictos.",
+                "Realizar una evaluación de seguimiento para comprobar la efectividad de las acciones."
+            ]
+        },
+        "Alto": {
+            "retroalimentacion": "Se identifican factores de riesgo importantes que requieren intervención prioritaria y seguimiento cercano por parte de la organización.",
+            "estrategias": [
+                "Implementar un programa de intervención con responsables, fechas y evidencias.",
+                "Analizar las causas de las dimensiones críticas con participación del personal.",
+                "Fortalecer los mecanismos confidenciales para reportar violencia o conflictos laborales.",
+                "Revisar la distribución de cargas, jornadas, liderazgo y recursos disponibles.",
+                "Dar seguimiento frecuente a los avances y volver a evaluar los resultados."
+            ]
+        },
+        "Muy Alto": {
+            "retroalimentacion": "El resultado refleja factores de riesgo críticos. La organización debe priorizar acciones inmediatas de control y atención.",
+            "estrategias": [
+                "Iniciar de inmediato un programa integral de intervención y control.",
+                "Atender primero las dimensiones y áreas con los puntajes más elevados.",
+                "Canalizar a atención profesional a las personas que presenten signos o síntomas, cuando corresponda.",
+                "Establecer responsables, plazos cortos e indicadores para verificar las acciones.",
+                "Realizar seguimiento continuo y una nueva evaluación después de la intervención."
+            ]
+        },
+        "Sin datos": {
+            "retroalimentacion": "Todavía no existen respuestas suficientes para interpretar el resultado del cuestionario.",
+            "estrategias": [
+                "Completar la aplicación del cuestionario antes de emitir conclusiones.",
+                "Verificar que las evaluaciones hayan sido enviadas correctamente."
+            ]
+        }
+    }
+    return recomendaciones.get(nivel, recomendaciones["Sin datos"])
+
 def supabase_to_dict(result):
     if hasattr(result, 'data'):
         return result.data
@@ -128,6 +185,7 @@ def obtener_dashboard_cuestionario(
         
         # Si no hay evaluaciones
         if not evaluaciones:
+            orientacion = obtener_retroalimentacion_y_estrategias("Sin datos")
             return {
                 "cuestionario": cuestionario,
                 "total_encuestas": 0,
@@ -138,7 +196,8 @@ def obtener_dashboard_cuestionario(
                 "distribucion_riesgo": {},
                 "distribucion_riesgo_porcentual": {},
                 "resumen_dimensiones": [],
-                "frecuencias_preguntas": []
+                "frecuencias_preguntas": [],
+                **orientacion
             }
         
         # 6. Calcular métricas generales
@@ -170,6 +229,7 @@ def obtener_dashboard_cuestionario(
             semaforo_global = {"nivel": "Sin datos", "color": "#CCCCCC", "descripcion": "No hay puntajes"}
         else:
             semaforo_global = calcular_semaforo_nom035(int(promedio_general))
+        orientacion = obtener_retroalimentacion_y_estrategias(semaforo_global["nivel"])
         
         # 7. Distribución de riesgos
         distribucion = {}
@@ -177,6 +237,10 @@ def obtener_dashboard_cuestionario(
             nivel = eval.get("nivel_riesgo")
             if not nivel:
                 puntaje = eval.get("puntaje_total")
+                if puntaje is None:
+                    valores = respuestas_por_resultado.get(eval["id_resultado"], [])
+                    if valores:
+                        puntaje = sum(valores)
                 if puntaje is not None:
                     nivel = calcular_semaforo_nom035(puntaje)["nivel"]
                 else:
@@ -253,7 +317,8 @@ def obtener_dashboard_cuestionario(
             "distribucion_riesgo": distribucion,
             "distribucion_riesgo_porcentual": distribucion_porcentual,
             "resumen_dimensiones": resumen_dimensiones,
-            "frecuencias_preguntas": frecuencias_preguntas
+            "frecuencias_preguntas": frecuencias_preguntas,
+            **orientacion
         }
     except HTTPException:
         raise
@@ -289,7 +354,10 @@ def exportar_reporte_cuestionario(
         output = io.StringIO()
         writer = csv.writer(output)
         
-        headers = ["ID_Resultado", "Fecha", "Area", "Puesto", "Antiguedad", "Puntaje_Total", "Nivel_Riesgo"]
+        headers = [
+            "ID_Resultado", "Fecha", "Area", "Puesto", "Antiguedad",
+            "Puntaje_Total", "Nivel_Riesgo", "Retroalimentacion", "Estrategias_Recomendadas"
+        ]
         for id_r in ids_reactivos:
             reactivo = supabase.table("reactivos").select("texto_reactivo").eq("id_reactivo", id_r).execute()
             texto = reactivo.data[0]["texto_reactivo"][:50] + "..." if reactivo.data and len(reactivo.data[0]["texto_reactivo"]) > 50 else reactivo.data[0]["texto_reactivo"] if reactivo.data else f"Pregunta_{id_r}"
@@ -298,21 +366,33 @@ def exportar_reporte_cuestionario(
         writer.writerow(headers)
         
         for eval in evaluaciones.data:
+            respuestas = supabase.table("respuestas_detalle").select("id_reactivo, valor_respondido")\
+                .eq("id_resultado", eval["id_resultado"])\
+                .execute()
+            respuestas_dict = {r["id_reactivo"]: r.get("valor_respondido") for r in respuestas.data}
+
+            puntaje_total = eval.get("puntaje_total")
+            if puntaje_total is None:
+                valores = [valor for valor in respuestas_dict.values() if valor is not None]
+                if valores:
+                    puntaje_total = sum(valores)
+
+            nivel_riesgo = eval.get("nivel_riesgo")
+            if not nivel_riesgo and puntaje_total is not None:
+                nivel_riesgo = calcular_semaforo_nom035(puntaje_total)["nivel"]
+            nivel_riesgo = nivel_riesgo or "Sin datos"
+            orientacion = obtener_retroalimentacion_y_estrategias(nivel_riesgo)
             row = [
                 eval["id_resultado"],
                 eval["fecha_aplicacion"],
                 eval.get("area_trabaja", ""),
                 eval.get("puesto_ocupa", ""),
                 eval.get("antiguedad", ""),
-                eval.get("puntaje_total") or "NULL",
-                eval.get("nivel_riesgo") or "Sin datos"
+                puntaje_total if puntaje_total is not None else "NULL",
+                nivel_riesgo,
+                orientacion["retroalimentacion"],
+                " | ".join(orientacion["estrategias"])
             ]
-            
-            respuestas = supabase.table("respuestas_detalle").select("id_reactivo, valor_respondido")\
-                .eq("id_resultado", eval["id_resultado"])\
-                .execute()
-            
-            respuestas_dict = {r["id_reactivo"]: r.get("valor_respondido") for r in respuestas.data}
             
             for id_r in ids_reactivos:
                 row.append(respuestas_dict.get(id_r, ""))

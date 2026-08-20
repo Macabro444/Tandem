@@ -109,6 +109,32 @@
         </div>
       </div>
 
+      <!-- Retroalimentación y estrategias -->
+      <div class="insights-grid">
+        <section class="insight-card feedback-card">
+          <div class="insight-heading">
+            <span class="insight-icon" aria-hidden="true">💬</span>
+            <h3>Retroalimentación del resultado</h3>
+          </div>
+          <p>{{ dashboardData.retroalimentacion || 'No hay información suficiente para generar una retroalimentación.' }}</p>
+        </section>
+
+        <section class="insight-card strategy-card">
+          <div class="insight-heading">
+            <span class="insight-icon" aria-hidden="true">🎯</span>
+            <h3>Estrategias recomendadas</h3>
+          </div>
+          <ul v-if="dashboardData.estrategias?.length">
+            <li v-for="estrategia in dashboardData.estrategias" :key="estrategia">{{ estrategia }}</li>
+          </ul>
+          <p v-else>No hay estrategias disponibles para este resultado.</p>
+        </section>
+
+        <p class="guidance-note">
+          Estas recomendaciones son orientaciones preventivas para apoyar la toma de decisiones y no constituyen un diagnóstico médico o psicológico.
+        </p>
+      </div>
+
       <!-- Distribución de Riesgo -->
       <div class="card">
         <h3>Distribución de Riesgo</h3>
@@ -248,7 +274,9 @@ const dashboardData = ref<any>({
   distribucion_riesgo: {},
   distribucion_riesgo_porcentual: {},
   resumen_dimensiones: [],
-  frecuencias_preguntas: []
+  frecuencias_preguntas: [],
+  retroalimentacion: '',
+  estrategias: []
 });
 const loading = ref(false);
 
@@ -294,7 +322,9 @@ const cargarDashboard = async () => {
       distribucion_riesgo: {},
       distribucion_riesgo_porcentual: {},
       resumen_dimensiones: [],
-      frecuencias_preguntas: []
+      frecuencias_preguntas: [],
+      retroalimentacion: '',
+      estrategias: []
     };
     return;
   }
@@ -323,7 +353,9 @@ const cargarDashboard = async () => {
       distribucion_riesgo: {},
       distribucion_riesgo_porcentual: {},
       resumen_dimensiones: [],
-      frecuencias_preguntas: []
+      frecuencias_preguntas: [],
+      retroalimentacion: '',
+      estrategias: []
     };
   } finally {
     loading.value = false;
@@ -532,6 +564,54 @@ onMounted(() => {
 .stat-sub {
   font-size: 14px;
   color: #6b7a8f;
+}
+
+/* Retroalimentación y estrategias */
+.insights-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.insight-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  border-top: 4px solid #2563eb;
+}
+.strategy-card { border-top-color: #0f766e; }
+.insight-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.insight-heading h3 {
+  margin: 0;
+  color: #1a2332;
+  font-size: 16px;
+}
+.insight-icon { font-size: 20px; }
+.insight-card p,
+.insight-card li {
+  color: #4a5a6e;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.insight-card p { margin: 0; }
+.insight-card ul {
+  margin: 0;
+  padding-left: 20px;
+}
+.insight-card li + li { margin-top: 6px; }
+.guidance-note {
+  grid-column: 1 / -1;
+  margin: -4px 0 0;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: #eef2ff;
+  color: #4f5f79;
+  font-size: 12px;
 }
 
 /* Cards */
@@ -777,6 +857,7 @@ onMounted(() => {
   .selector-bar { flex-direction: column; align-items: stretch; }
   .filter-select { min-width: 100%; }
   .stats-grid { grid-template-columns: 1fr 1fr; }
+  .insights-grid { grid-template-columns: 1fr; }
   .dimensiones-grid { grid-template-columns: 1fr; }
   .pregunta-texto { max-width: 150px; font-size: 12px; }
   .table th, .table td { padding: 8px 10px; font-size: 12px; }
