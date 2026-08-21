@@ -411,6 +411,10 @@ onMounted(() => {
 .reportes-container {
   padding: 24px;
   min-height: 100vh;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
   background: #f5f7fa;
 }
 
@@ -439,12 +443,18 @@ onMounted(() => {
   margin-bottom: 24px;
   align-items: flex-end;
   flex-wrap: wrap;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   box-shadow: 0 1px 3px rgba(0,0,0,0.06);
 }
 .filter-group {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  flex: 1 1 300px;
+  max-width: 100%;
+  min-width: 0;
 }
 .filter-group label {
   font-size: 12px;
@@ -458,8 +468,11 @@ onMounted(() => {
   border: 1px solid #d1d5db;
   border-radius: 8px;
   font-size: 14px;
+  width: 100%;
+  max-width: 100%;
   min-width: 300px;
   background: #fff;
+  text-overflow: ellipsis;
 }
 .badge-total {
   padding: 8px 16px;
@@ -512,12 +525,18 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 24px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .info-cuestionario {
   background: #fff;
   border-radius: 12px;
   padding: 20px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   box-shadow: 0 1px 3px rgba(0,0,0,0.06);
 }
 .info-cuestionario h2 {
@@ -542,11 +561,15 @@ onMounted(() => {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 16px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
 .stat-card {
   background: #fff;
   border-radius: 12px;
   padding: 16px 20px;
+  min-width: 0;
   border-left: 4px solid #2563eb;
   box-shadow: 0 1px 3px rgba(0,0,0,0.06);
 }
@@ -571,11 +594,15 @@ onMounted(() => {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
 .insight-card {
   background: #fff;
   border-radius: 12px;
   padding: 20px;
+  min-width: 0;
   box-shadow: 0 1px 3px rgba(0,0,0,0.06);
   border-top: 4px solid #2563eb;
 }
@@ -619,6 +646,9 @@ onMounted(() => {
   background: #fff;
   border-radius: 12px;
   padding: 20px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   box-shadow: 0 1px 3px rgba(0,0,0,0.06);
 }
 .card h3 {
@@ -645,6 +675,7 @@ onMounted(() => {
 }
 .bar-track {
   flex: 1;
+  min-width: 0;
   height: 20px;
   background: #f0f4f9;
   border-radius: 10px;
@@ -666,6 +697,7 @@ onMounted(() => {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 16px;
+  min-width: 0;
 }
 .dimension-card {
   background: #f8fafc;
@@ -705,7 +737,12 @@ onMounted(() => {
 
 /* ✅ Tabla - CORREGIDA para mejor visibilidad */
 .table-container {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   overflow-x: auto;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
   border: 1px solid #e8ecf0;
   border-radius: 8px;
 }
@@ -855,11 +892,37 @@ onMounted(() => {
 @media (max-width: 768px) {
   .reportes-container { padding: 16px; }
   .selector-bar { flex-direction: column; align-items: stretch; }
-  .filter-select { min-width: 100%; }
+  .filter-group { flex-basis: auto; width: 100%; }
+  .filter-select { width: 100%; min-width: 0; max-width: 100%; }
+  .btn-primary { width: 100%; justify-content: center; }
   .stats-grid { grid-template-columns: 1fr 1fr; }
   .insights-grid { grid-template-columns: 1fr; }
   .dimensiones-grid { grid-template-columns: 1fr; }
   .pregunta-texto { max-width: 150px; font-size: 12px; }
   .table th, .table td { padding: 8px 10px; font-size: 12px; }
+}
+
+@media (max-width: 480px) {
+  .reportes-container { padding: 14px 12px; }
+  .header { margin-bottom: 18px; }
+  .header h1 { font-size: 22px; line-height: 1.2; }
+  .selector-bar,
+  .info-cuestionario,
+  .card,
+  .insight-card { padding: 16px; }
+  .stats-grid { grid-template-columns: 1fr; gap: 12px; }
+  .stat-value { font-size: 24px; }
+  .bar-item {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 6px 12px;
+  }
+  .bar-label { min-width: 0; }
+  .bar-track { grid-column: 1 / -1; grid-row: 2; width: 100%; }
+  .bar-value { min-width: 0; text-align: right; }
+  .info-cuestionario h2,
+  .dimension-nombre,
+  .insight-card p,
+  .insight-card li { overflow-wrap: anywhere; }
 }
 </style>
